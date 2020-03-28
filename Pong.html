@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Pong Game</title>
+	<style type="text/css">
+
+		body{
+			background-color: #1C2833;
+			margin: 0;
+			color: #ECF0F1;
+		}
+
+		h1{
+			font-size: 40px;
+			text-align: center;
+			color: #ECF0F1; 
+
+		}
+		#game{
+			text-align: center;
+			padding: 20px 40px 20px 40px;
+			margin: 20px 0px 20px 0px;
+			background-color: #273746;
+		}
+		canvas{
+			margin-top: 20px;
+		}
+		label{
+			font-size: 20px;
+		}
+		input{
+			width: 40px;
+			font-size: 20px;
+			margin: 4px;
+		}
+
+	</style>
+</head>
+<body>
+
+<h1>Pong Game</h1>
+
+<div id="game">
+	<div><label>Set computer Level: </label><input type="number" name="computerLevel" value="2" id="computerLevel" min="1" max="4"></div>
+	<div><label>Set points to win: </label><input type="number" name="winPoints" value="3" id="winPoints"></div>
+
+	<canvas id="gameCanvas" width="800" height="600"></canvas>
+</div>
+
+
+<script type="text/javascript">
+	const canvas = document.getElementById("gameCanvas");
+	const canvasContext = canvas.getContext("2d");
+
+	const rect = canvas.getBoundingClientRect();
+
+	var game = setInterval(voidLoop, 1000/60);
+
+	var computerLevel = document.getElementById("computerLevel").value;
+
+	console.log(computerLevel);
+
+/*------ Players -------*/
+
+	var player = {
+		height: 100,
+		width: 10,
+		posX: 30, //position
+		posY: 100,
+		score: 0,
+	}
+
+	var player2 = {
+		height: 100,
+		width: 10,
+		posX: 760, //position
+		posY: 400,
+		score: 0,
+	}
+
+/*------- Ball  -----*/
+	var ball = {
+		speedX: 7,
+		speedY: 4,
+		posX: canvas.width / 2,
+		posY: canvas.height / 2,
+		size: 10,
+	}
+
+	function ballStop(){
+		ball.speedX = 0;
+		ball.speedY = 0;
+	}
+
+	function ballReset(){
+		ball.posX = canvas.width / 2;
+		ball.posY = canvas.height / 2;
+		ball.speedX = 7;
+		ball.speedY = 4;
+
+	}
+
+	function computerAI(level){
+		switch (level){
+			case 1:
+
+				if (ball.posY > player2.posY) {
+				player2.posY += 5;
+				}
+
+				else if (ball.posY < player2.posY) {
+				player2.posY -= 5;
+				}
+
+			break;
+
+			case 2:
+
+				if (ball.posY > player2.posY +30 && ball.posX > canvas.width / 2) {
+				player2.posY += 8;
+				}
+
+				else if (ball.posY < player2.posY -30 && ball.posX > canvas.width / 2) {
+				player2.posY -= 8;
+				}
+
+			break;
+
+			case 3:
+
+				if (ball.posY > player2.posY +30 && ball.posX > canvas.width / 2) {
+				player2.posY += 10;
+				}
+
+				else if (ball.posY < player2.posY -30 && ball.posX > canvas.width / 2) {
+				player2.posY -= 10;
+				}
+
+			break;
+
+			case 4:
+				if (ball.posY > player2.posY + 40 && ball.posX > canvas.width / 2) {
+				player2.posY += 14;
+				}
+
+				else if (ball.posY < player2.posY -40 && ball.posX > canvas.width / 2) {
+				player2.posY -= 14;
+				}
+
+			break;
+
+		}
+	}
+
+	function scoreBoard(){
+
+		canvasContext.font = "72px serif";
+		canvasContext.fillText(player.score, canvas.width /2 - 100, 100);
+		canvasContext.fillText(player2.score, canvas.width /2 + 65, 100);
+
+		var winPoints = parseInt(document.getElementById("winPoints").value);
+
+		//======WinScreen===========
+		if (player.score >= winPoints){
+			canvasContext.font = "72px serif";
+			canvasContext.fill();
+			canvasContext.fillText("Player 1 wins", canvas.width /2 - 200, 200);
+			ballStop();
+			computerLevel = 0;
+			canvas.addEventListener('click', function(){
+				player.score = 0;
+				player2.score = 0;
+				ballReset();
+			});
+		}
+		if (player2.score >= winPoints) {
+			canvasContext.font = "72px serif";
+			canvasContext.fill();
+			canvasContext.fillText("Computer wins", canvas.width /2 - 200, 200);
+			ballStop();
+			computerLevel = 0;
+			canvas.addEventListener('click', function(){
+				player.score = 0;
+				player2.score = 0;
+				ballReset();
+			});
+		}
+	}
+
+
+	function voidLoop(){
+		//mouse position
+		canvas.addEventListener('mousemove', pos => {
+		 player.posY = pos.clientY - rect.top;
+		});
+
+		//Background
+		canvasContext.fillStyle = "black";		
+		canvasContext.fillRect(0,0,canvas.width,canvas.height);
+
+		//center shapes
+		canvasContext.beginPath();
+		for (var i = 0; i < canvas.height - 20; i += 40) {
+
+			canvasContext.moveTo(canvas.width / 2, 10 + i);
+	    	canvasContext.lineTo(canvas.width / 2, 30 + i);
+		    canvasContext.lineWidth = 3;
+		    canvasContext.strokeStyle = 'white';
+	    	canvasContext.stroke();
+
+		}
+
+
+		//Ball
+		canvasContext.beginPath();
+		canvasContext.fillStyle = "white";
+		canvasContext.arc(ball.posX, ball.posY, ball.size, 0, Math.PI*2);
+		canvasContext.fill();
+
+		//Players collides with the border
+	//PLAYER1
+		if (player.posY - player.height / 2 <= 0) {
+			player.posY = player.height / 2;
+		}
+
+		if (player.posY + player.height / 2 >= canvas.height) {
+			player.posY = canvas.height - player.height / 2;
+		}
+	//PLAYER2
+		if (player2.posY - player2.height / 2 <= 0) {
+			player2.posY = player2.height / 2;
+		}
+
+		if (player2.posY + player2.height / 2 >= canvas.height) {
+			player2.posY = canvas.height - player2.height / 2;
+		}
+	////////////////
+		//draw paddles
+		canvasContext.fillRect(player.posX, player.posY - (player.height / 2), player.width, player.height); //left
+		canvasContext.fillRect(player2.posX, player2.posY - (player2.height / 2), player2.width, player2.height); //Right
+
+		//move ball
+		ball.posX += ball.speedX;
+		ball.posY += ball.speedY;
+
+		//ball speed limit
+		if (ball.speedY < -14) {
+			ball.speedY++;
+		}
+
+		if (ball.speedY > 14) {
+			ball.speedY--;
+		 }
+
+		 if (ball.speedY < 2 && ball.speedY > -2){
+		 	ball.speedY *= 2;
+		 }
+
+		canvasContext.font = "14px serif";
+		canvasContext.fillText("computerLevel " + computerLevel, 600,20);
+		canvasContext.fill();
+
+
+	/*------ Ball collitions with the border -----------------*/
+
+		if (ball.posX <= ball.size){
+			player2.score++;
+			ballReset();
+		}
+
+		if (ball.posX >= canvas.width - ball.size ) {
+			player.score++;
+			ballReset();
+		}
+
+		if (ball.posY <= ball.size) {
+			ball.speedY = -ball.speedY;
+		}
+		if (ball.posY >= canvas.height - ball.size) {
+			ball.speedY = -ball.speedY;
+		}
+
+// ------ Ball collitions with the player (Left) -------------//
+
+		if (ball.posX <= player.posX + player.width + ball.size && ball.posY >= player.posY - (player.height / 2) && ball.posY <= player.posY + (player.height / 2) ) {
+			ball.speedX = -ball.speedX;
+
+			if(ball.posY <= player.posY - player.height / 3){
+				ball.speedY = Math.abs(ball.speedY) * -2;
+				console.log("top")
+				}
+
+			else if(ball.posY >= player.posY + (player.height / 4) ){
+				ball.speedY = Math.abs(ball.speedY) * 2;
+				console.log("bottom")
+				}
+			else{
+				ball.speedY = ball.speedY / 2;
+				console.log("middle")
+			}
+		}
+// -------Ball collitions with the Right paddle ------//
+
+		if (ball.posX >= player2.posX && ball.posY >= player2.posY - (player2.height / 2) && ball.posY <= player2.posY + (player2.height / 2) ) {
+
+			ball.speedX = -ball.speedX;
+
+			if(ball.posY <= player.posY - player2.height / 3){
+				ball.speedY = Math.abs(ball.speedY) * -2;
+				console.log("top player2")
+				}
+
+			else if(ball.posY >= player2.posY + (player2.height / 4) ){
+				ball.speedY = Math.abs(ball.speedY) * 2;
+				console.log("bottom player2")
+				}
+			else{
+				ball.speedY = ball.speedY / 2;
+				console.log("middle player2")
+			}
+		}
+
+// -------- AI leff paddle --------------- //
+		computerLevel = parseInt(document.getElementById("computerLevel").value);
+		computerAI(computerLevel);
+
+//----- Score -----------//
+		scoreBoard();
+
+
+	}
+
+
+</script>
+</body>
+</html>
